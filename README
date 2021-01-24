@@ -1,5 +1,7 @@
 README
  Oporanu Ioan Nicolae 324CA
+ 
+ git repository https://github.com/ioanoporanu/Etapa2Proiect_POO.git 
 
 Pentru citirea inputului am creat package-ul input ce contine 2 clase:
 -InitialData ce contine 3 liste: una de obiecte consumer,una de obiecte distribuitor si alta de obiecte producer.
