@@ -1,0 +1,195 @@
+README
+ Oporanu Ioan Nicolae 324CA
+
+Pentru citirea inputului am creat package-ul input ce contine 2 clase:
+-InitialData ce contine 3 liste: una de obiecte consumer,una de obiecte distribuitor si alta de obiecte producer.
+-InputLoader ce contine un int ce reprezinta numarul de runde, un obiect de tipul
+ InitialData si un obiect de tipul monthlyupdates .
+
+Package-ul update contine clasele:
+-DistributorChanges ce reprezinta schimbarile ce pot sa fie aduse unui distribuitor.
+-ProducerChanges ce reprezinta schimbarile ce pot sa fie aduse unui producator.
+-MonthlyUpdates ce contine o lista de consumatori, o lista de DistributorChanges si o lista de ProducerChanges.
+
+Package-ul players contine clasele:
+-Consumer ce are pe langa campurile din enunt si un camp debt, unu contract nou si unul vechi .
+-Distributor, ce contine pe langa campurile din enunt o lista de contracte,o lista de producatori, un camp 
+ mustApplyStrategy care este setat adevarat daca acesta trebuie sa isi reaplice strategia in luna respectiva . 
+-Producer, ce are pe langa campurile din enunt si o lista cu distribuitori, o lista cu monthlyStats si un camp
+ renewable care este adevarat daca energia produsa este regenerabila.
+-Contract, ce reprezinta contractul intre un distribuitor si consumator.
+-MonthlyStats, ce contine un int ce reprezinta luna si o lista cu id-uri.
+-Interfata Players, contine metoda playerPay pe care o implementeaza consumer si distributor.
+-Factory-ul PlayersFactory.
+
+Package-ul playersout contine clasele:
+-ConsumerOut.
+-DistributorOut.
+-ContractOut.
+-ProducerOut.
+->Aceste clase contin doar campurile din obiectele din player pe care vreau sa le afisez.
+-Interfata PlayersOut.
+-PlayersOutFactory ce imi creeaza obiecte DistributorOut sau ConsumerOut sau ProducerOut.
+
+Package-ul output contine clasele:
+-Output clasa care defineste obiectul pe care il voi scrie in fisier.
+-OutputLoader clasa care copiaza din obiectele din package-ul players ce trebuie afisate 
+ campurile ce trebuie afisate si le pune in obiectele, folosind factory, pe care le afisez efectiv si imi 
+ creeaza obiectul output, cel ce trebuie pus in fisier.
+
+Package-ul strategies ce contine clasele:
+-Green, strategia pentru energie regenerabila.
+-Price, strategia pentru pret.
+-Quantity, strategia pentru cantitate.
+-Interfata Strategy, pa care o implementeaza clasele de mai sus.
+-StrategyFactory, care produce strategii.
+
+
+Package-ul utils contine clasa:
+-Simulator, clasa care imi simuleaza efectiv jocul(rundele).
+
+Acum voi prezenta metodele din fiecare clasa:
+
+Package players:
+->Clasa Consumer contine 2 metode:
+  -playerPay pe care o implementeaza din interfata Players. Aceasta metoda realizeaza plata
+   pentru consumerul respectiv astfel: 
+   ---Daca acesta nu poate sa plateasca si are datorie atunci, daca datoria este la un distribuitor vechi 
+   si acesta poate sa plateasca doar datoria, plateste doar datoria si face o noua datorie la distribuitorul curent, 
+   altfel este declarat falimentar.
+   ---Daca acesta nu are datorie si nu poate sa plateasca ii face o datorie.
+   ---Daca acesta poate sa plateasca totul ii anuleaza datoria, daca are, si ii plateste si rata din acea luna.
+   ---In cazul in care acesta avea datorie la un distribuitor vechi si o plateste, atunci contractul 
+   vechi al acestuia devine null(a scapat de datorie). 
+   ---Practic contractul vechi retine cui trebuie sa plateasca datoria daca a schimbat distributorul si 
+   avea datorie la acesta. Totodata daca consumatorul avea un contract vechi la un distribuitor ce a dat 
+   faliment atunci acestuia i se anuleaza datoria si contractul vechi devine null.
+
+  -chooseContract este metoda prin care un consumator isi alege un contract. Un consumator poate sa isi
+   aleaga contract daca contractul curent este null sau daca valabilitatea contractului curent este 0.
+   Utilizatorul considera doar contractele al caror distribuitor nu a dat faliment.
+   In aceste cazuri el cauta distribuitorul ce are contractul cu cel mai mic pret si il alege pe acesta.
+   Astfel contractul current devine contractul vechi, iar contractul nou ales devine cel curent. Daca 
+   acesta nu are datorie cand isi cauta un alt contract, contractul vechi nu se schimba cu cel nou, ramane 
+   null.
+
+->Clasa Distributor implementeaza Observer si contine metodele:
+  -computeProfit care calculeaza profitul.
+
+  -compute productionCost care calculeaza costul productiei.
+
+  -computeContractPrice care calculeaza pretul contractului pentru acea luna.
+
+  -totalCosts care calculeaza costurile totale pentru un distribuitor.
+
+  -removeContractBankrupt care elimina din lista de contracte toate contractele ce au consumeri falimentari.
+
+  -removeContractFinished care elimina din lista de contracte toate contractele care s-au terminat.
+
+  -playerPays pe care o implementeaza din interfata Players si care realizeaza plata efectiva pentru 
+   un distribuitor, cat trebuie el sa plateasca pentru acea luna. Daca acesta nu poate sa plateasca, este
+   declarata falimentar si se anuleaza toate contractele sale.
+
+  -Update care seteaza campul mustApplyStrategy ca adevarat.
+
+->Clasa Producator extinde Observable si contine metodele:
+  -playerPay care notifica toti Distribuitorii sai ca datele acestuia s-au modificat.
+
+Package strategies:
+->Pentru Clasele ce reprezinta strategiile:
+ -Acestea implementeaza metoda choose care aplica strategia pentru un anumit distribuitor astfel:
+  Ii goleste lista de producatori, creeaza o lista cu producatorii sortati dupa criteriile acelui distribuitor
+  folosind un stream si apoi din aceasta lista alege producatori pana cand necesarul de energie este atins.
+->Clasa StrategyFactory contine metoda makeStrategy care creea un obiect de tipul unei anumite strategii.
+  Practic aceasta clasa creeaza strategiile pentru fiecare distribuitor.
+
+
+Package utils:
+->Clasa Simulator contine metodele:
+  -computeContractsPrice care pentru fiecare distributior aplica metoda de calcul al contractului si sorteaza 
+   lista acestora in functie de pretul contractului si de id. 
+  
+  -consumerPays care adauga la bugetul fiecarui consumator salariul, alege un contract daca este cazul si 
+   realizeaza plata pentru acesta.
+
+  -chooseInitialProducers care pentru fiecare distribuitor care nu este bankrupt ii aplica strategia.
+   Apoi pentru fiecare producator adauga distribuitorii din lista sa de distribuitori ca observeri
+   ai sai.
+
+  -setMonthlyStats seteaza pentru fiecare producator lista de distribuitori din luna respectiva.
+
+  -monthlyUpdates care realizeaza update-urile lunare pentru consumatori si distribuitori.
+
+  -monthlyUpdatesProducers care realizeaza update-urile lunare pentru producatori.
+
+  -distributorPays care realizeaza platile pentru fiecare distribuitor.
+
+  -setRenewable seteaza pentru toti producatorii daca energia produsa este sau nu regenerabila.
+
+  -removeFinishedContracts si removeBankruptContracts elimina pentru fiecare distribuitor contractele terminate
+   respectiv ai caror consumatori au dat faliment.
+
+  -decreaseContractsMonths pentru fiecare contract scade valabilitatea cu 1 luna.
+
+  -computeProductionCost calculeaza costul productiei pentru fiecare distribuitor.
+
+  -chooseProducers aplica strategia pentru fiecare distribuitor(in ordine dupa id-uri)
+   (daca este cazul, daca un producator al sau a fost modificat) si ii realege producatorii astfel: 
+   Il sterge din listele de distribuitori si din listele de observers
+   ale tuturor productorilor sai, apoi isi realege noii producatori.
+   Apoi, tot in aceasta metoda, pentru fiecare, producator adauga ca observer fiecare distribuitor din lista sa
+   de distribuitori.	
+
+  -runAllTurns care aplica pentru prima luna aplica metodele: 
+                setRenewable;
+                chooseInitialProducers
+                computeProductionCost
+                computeContractsPrice
+                removeFinishedContracts
+                consumerPays
+                distributorPays
+                removeBankruptContracts
+
+  in aceasta ordine si pentru restul lunilor:
+                monthlyUpdates
+                computeContractsPrice
+                removeFinishedContracts
+                consumerPays
+                distributorPays
+                removeBankruptContracts
+                monthlyUpdatesProducers
+                chooseProducers
+                computeProductionCost
+                setMonthlyStats
+
+  in aceasta ordine. Apoi pentru fiecare luna aplica decreaseContractsMonths, iar la sfarsitul ultimei luni
+  sorteaza listele de distribuitori dupa id.
+  
+  
+
+Package output:
+->Clasa OutputLoader contine metoda:
+  -makeOutput care, pentru toti jucatorii cu care am lucrat, creeaza un jucator similar de Out folosind PlayersOutFactory.
+   Apoi in acesta copiaza toate campurile ce trebuie afisate si adauga obiectul la lista sa respectiva din obiectul output.
+   Aceasta metoda primeste ca parametru inputul si un obiect out. 
+
+Package playersout:
+->PlayersOutFactory creeaza un obiect de tipul PlayerOut prin intermediul metodei makePlayersOut care primeste ca parametru 
+  un obiect de tip Player si un element din enumeratia din factory.
+
+->In main, citesc inputul din fisier intr-un obiect de tip inputLoader, input, creez un obiect simulator, aplic 
+  pentru acest input metoda din simulator runAllTurns, apoi creez un obiect de tip output si aplic pentru obiectele
+  input si output metoda makeOutput din clasa OutputLoader. Apoi scriu obiectul output in fisier.
+
+Strategy:
+->Design pattern-ul strategy se foloseste de fiecare data cand un distribuitor isi alege producatorii
+  aplicand strategia pe care acesta o are, folosind factory-ul din package-ul strategy.
+
+Observer:
+->Design pattern-ul Observer este folosit astfel:
+  Producatorii sunt observable, iar distribuitorii ce iau energie de la acestia sunt observeri. Astfel,
+  cand un producator sufera o modificare acesta isi notifica toti observerii si acestia fac update, adica
+  seteaza ca adevarat campul care spune daca un distribuitor trebuie sa isi reaplice strategia. Daca un 
+  distribuitor primeste energie de la un producator atunci acesta este adaugat in lista de observers a
+  acelui producator.
+
